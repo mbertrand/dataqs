@@ -9,7 +9,7 @@ from ..csv_helpers import UnicodeWriter
 from ..helpers import ogr2ogr_exec
 from ..processor_base import GeoDataProcessor
 
-logger = logging.getLogger("geonodegp.data_queues.processors")
+logger = logging.getLogger("data_queues.processors")
 
 class ChinaPollutionIPEProcessor(GeoDataProcessor):
 

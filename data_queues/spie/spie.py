@@ -5,7 +5,7 @@ import os
 from ..processor_base import GeoDataProcessor
 from ..helpers import get_band_count, gdal_translate, cdo_invert
 
-logger = logging.getLogger("geonodegp.data_queues.processors")
+logger = logging.getLogger("data_queues.processors")
 
 
 class SPIEProcessor(GeoDataProcessor):
