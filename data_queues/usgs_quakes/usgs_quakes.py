@@ -14,7 +14,8 @@ class USGSQuakeProcessor(GeoDataProcessor):
     Class for retrieving and processing the latest earthquake data from USGS.
     """
 
-    tables = ("quakes_weekly", "quakes_monthly", "quakes_yearly", "quakes_archive")
+    tables = ("quakes_weekly", "quakes_monthly",
+              "quakes_yearly", "quakes_archive")
 
     def purge_old_data(self):
         """
@@ -25,12 +26,16 @@ class USGSQuakeProcessor(GeoDataProcessor):
         last_month = (today - datetime.timedelta(days=30)).strftime("%s000")
         last_year = (today - datetime.timedelta(days=365)).strftime("%s000")
 
-        for interval, table in zip([last_week, last_month, last_year], self.tables):
+        for interval, table in zip([last_week, last_month, last_year],
+                                   self.tables):
+            postgres_query("UPDATE {} set time = CAST(time as bigint) + 1443109011456".format(table), commit=True)
+            postgres_query("UPDATE {} set updated = CAST(updated as bigint) + 1443109011456".format(table), commit=True)
             postgres_query("DELETE FROM {} where CAST(time as numeric) < {};".format(table, interval), commit=True)
 
     def run(self):
         """
-        Retrieve the latest USGS earthquake data and append to all PostGIS earthquake tables, then remove old data
+        Retrieve the latest USGS earthquake data and append to all
+        PostGIS earthquake tables, then remove old data
         :return:
         """
         rss = self.download("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson")
