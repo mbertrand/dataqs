@@ -9,7 +9,7 @@ from pymongo import MongoClient, GEOSPHERE
 from django.conf import settings
 from ..processor_base import GeoDataProcessor
 
-logger = logging.getLogger("data_queues.processors")
+logger = logging.getLogger("dataqs.processors")
 
 MONGODB = getattr(settings, 'MONGODB', {'HOST': 'localhost', 'PORT': 27017, 'NAME': 'healthmap'})
 HEALTHMAP_AUTH = getattr(settings, 'HEALTHMAP_AUTH', '')

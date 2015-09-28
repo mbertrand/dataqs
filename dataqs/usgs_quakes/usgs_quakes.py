@@ -7,7 +7,7 @@ from ..processor_base import GeoDataProcessor
 from ..helpers import postgres_query, ogr2ogr_exec
 from geonode.geoserver.helpers import ogc_server_settings
 
-logger = logging.getLogger("data_queues.processors")
+logger = logging.getLogger("dataqs.processors")
 
 class USGSQuakeProcessor(GeoDataProcessor):
     """

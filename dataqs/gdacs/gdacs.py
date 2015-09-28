@@ -7,7 +7,7 @@ from geonode.geoserver.helpers import ogc_server_settings
 from ..helpers import ogr2ogr_exec
 from ..processor_base import GeoDataProcessor
 
-logger = logging.getLogger("data_queues.processors")
+logger = logging.getLogger("dataqs.processors")
 
 
 class GDACSProcessor(GeoDataProcessor):

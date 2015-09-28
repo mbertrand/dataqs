@@ -10,7 +10,7 @@ from django.conf import settings
 from ..processor_base import GeoDataMosaicProcessor
 from ..helpers import gdal_translate
 
-logger = logging.getLogger("data_queues.processors")
+logger = logging.getLogger("dataqs.processors")
 
 GPM_ACCOUNT = getattr(settings, 'GPM_ACCOUNT', 'anonymous')
 GS_DATA_DIR = getattr(settings, 'GS_DATA_DIR', '/data/geodata')
