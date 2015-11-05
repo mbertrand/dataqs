@@ -1,10 +1,9 @@
 from __future__ import absolute_import
 
 from celery import shared_task
-from dataqs.nasa_gpm.nasa_gpm import GPMProcessor
-
+from dataqs.spei.spie import SPEIProcessor
 
 @shared_task
-def nasa_gpm_task():
-    processor = GPMProcessor()
+def spei_task():
+    processor = SPEIProcessor()
     processor.run()
