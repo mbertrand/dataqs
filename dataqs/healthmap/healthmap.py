@@ -14,13 +14,14 @@ logger = logging.getLogger("dataqs.processors")
 MONGODB = getattr(settings, 'MONGODB', {'HOST': 'localhost', 'PORT': 27017, 'NAME': 'healthmap'})
 HEALTHMAP_AUTH = getattr(settings, 'HEALTHMAP_AUTH', '')
 
+
 class HealthMapProcessor(GeoDataProcessor):
     """
     Retrieve latest data from Healthmap for a given API account
     and update the relevant collection in a Mongo database
     """
 
-    base_url = "http://www.healthmap.org/HMapi.php?auth={}&".format(HEALTHMAP_AUTH)
+    base_url = "http://www.healthmap.org/HMapi.php?auth={}&".format(getattr(settings, 'HEALTHMAP_AUTH', None))
     collection = 'healthmap90days'
     dbname = MONGODB['NAME']
 
@@ -35,11 +36,17 @@ class HealthMapProcessor(GeoDataProcessor):
                 self.healthmap_params[key] = kwargs.get(key)
         self.tmp_collection = 'tmp_{}'.format(self.collection)
 
+        if 'cutoff' not in self.healthmap_params:
+            today = datetime.date.today()
+            self.healthmap_params['cutoff'] = (
+                today - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+
         if 'sdate' not in self.healthmap_params:
             today = datetime.date.today()
-            self.healthmap_params['sdate'] = (today - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+            self.healthmap_params['sdate'] = (
+                today - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
 
-        super(HealthMapProcessor, self).__init__(*args)
+        super(HealthMapProcessor, self).__init__(*args, **kwargs)
 
 
     def init_db(self, db):
@@ -66,6 +73,7 @@ class HealthMapProcessor(GeoDataProcessor):
         return super(HealthMapProcessor, self).download(url + urllib.urlencode(self.healthmap_params),
                                                         filename=filename)
 
+
     def update_db(self, filename):
         client = MongoClient(host=MONGODB['HOST'], port=MONGODB['PORT'])
         db = client[self.dbname]
@@ -88,19 +96,15 @@ class HealthMapProcessor(GeoDataProcessor):
                     }
                     alerts.append(alert)
         alerts_json = json.loads(json.dumps(alerts))
-
-        results = tmp_collection.insert_many(alerts_json)
-        logger.info("Inserted into {}: {}".format(self.tmp_collection, results.inserted_ids))
-        if len(results.inserted_ids) > 0:
-            delete_name = '{}_delete'.format(self.collection)
+        for alert in alerts_json:
             try:
-                db[self.collection].rename(delete_name)
-                tmp_collection.rename(self.collection)
-                db[delete_name].drop()
+                db[self.collection].update(alert, alert, upsert=True)
             except Exception as e:
-                if delete_name in db.collection_names():
-                    db[delete_name].rename(db[self.collection])
-                raise
+                if "Can't extract geo keys" in e.message:
+                    logger.error(e.message)
+                    pass
+        db[self.collection].remove(
+            {'date': {'$lt': self.healthmap_params['cutoff']}})
 
     def run(self):
         output_file = self.download(self.base_url, filename='{}.json'.format(self.prefix))
@@ -108,8 +112,3 @@ class HealthMapProcessor(GeoDataProcessor):
         self.update_geonode(self.prefix)
         self.truncate_gs_cache(self.prefix)
         self.cleanup()
-
-
-if __name__ == '__main__':
-    processor = HealthMapProcessor()
-    processor.run()
