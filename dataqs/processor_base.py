@@ -185,6 +185,23 @@ class GeoDataProcessor(object):
         res.raise_for_status()
         return res.content
 
+    def update_gs_metadata(self, layer_name, json_data, vector=False,
+                           store=ogc_server_settings.DATASTORE):
+        if vector:
+            gs_url = self.gs_vec_url.format(ogc_server_settings.hostname,
+                                            self.workspace, store)
+            gs_url += "/{lyr}/{lyr}.json".format(lyr=layer_name)
+        else:
+            gs_url = self.gs_url.format(ogc_server_settings.hostname,
+                                        self.workspace, store).replace(
+                'file.geotiff', '')
+            gs_url += "/{lyr}.json".format(lyr=layer_name)
+        _user, _password = ogc_server_settings.credentials
+        res = requests.put(url=gs_url, data=json_data, auth=(_user, _password),
+                           headers={'Content-Type': 'application/json'})
+        res.raise_for_status()
+        return res.content
+
     def update_geonode(self, layer_name, title="", bounds=None):
         """
         Update a layer and it's title in GeoNode
