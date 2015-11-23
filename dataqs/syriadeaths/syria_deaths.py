@@ -185,12 +185,13 @@ META_JSON = """{
 
 class SyriaDeathsProcessor(GeoDataProcessor):
     prefix = 'syria_deaths'
-    layer_name = "syria_deaths_map"
-    #layer_names = ["syria_deaths_map", "syria_deaths_total_map"]
+    #layer_name = "syria_deaths_map"
+    layer_names = ['syria_deaths_map', 'syria_deaths_total_map']
+    layer_titles = ['Syrian War Casualties - Month of ',
+                    'Syrian War Casualties - Total as of ']
     join_table = 'syria_provinces'
     join_column = 'name_en'
     base_url = "http://syrianshuhada.com/?lang=en&a=st&st=20"
-    layer_title = 'Syrian "Martyr" casualties'
 
     def download(self):
         r = requests.get(self.base_url)
@@ -210,22 +211,29 @@ class SyriaDeathsProcessor(GeoDataProcessor):
             insert_sql += """WHERE NOT EXISTS (SELECT 1 from {} WHERE timestamp
 = \'{}\' and province = \'{}\');""".format(self.prefix, row[2], row[-1])
             postgres_query(insert_sql, params=tuple(row), commit=True)
-            if not table_exists(self.layer_name):
-                self.create_view()
+            for layer in self.layer_names:
+                if not table_exists(layer):
+                    self.create_view()
 
     def create_table(self):
         postgres_query(CREATE_TABLE_SQL.format(self.prefix),
                        commit=True)
 
     def create_view(self):
-        view_sql = 'CREATE OR REPLACE VIEW ' + self.layer_name + \
+        view_sql = 'CREATE OR REPLACE VIEW ' + self.layer_names[0] + \
                    ' AS SELECT i.*, g.the_geom from ' + self.prefix + ' i ' + \
                    ' INNER JOIN ' + self.join_table + ' g on ' + \
                    ' i.province = ' + \
                    ' g.{};'.format(self.join_column)
         postgres_query(view_sql, commit=True)
-        #view_sql = "CREATE OR REPLACE VIEW syria_deaths_total_map AS select" +
-        #" province, sum(deaths) from syria_deaths group by province;"
+        view_total_sql = 'CREATE OR REPLACE VIEW ' + self.layer_names[1] + \
+                         ' AS SELECT i.province, sum(i.deaths) as deaths, ' + \
+                         ' g.the_geom from ' + self.prefix + ' i ' + \
+                         ' INNER JOIN ' + self.join_table + ' g on ' + \
+                         ' i.province = ' + \
+                         ' g.{} group by province, the_geom;'.format(
+                             self.join_column)
+        postgres_query(view_total_sql, commit=True)
 
     def process_rows(self, html):
         soup = BeautifulSoup(html)
@@ -267,21 +275,23 @@ class SyriaDeathsProcessor(GeoDataProcessor):
         self.update_db(province_rows)
         row = province_rows[-1]
         latest_date = datetime.date(row[0], row[1], 1)
-        if not layer_exists(self.layer_name,
-                            ogc_server_settings.server.get('DATASTORE'),
-                            DEFAULT_WORKSPACE):
-            self.post_geoserver_vector(self.layer_name)
-        if not style_exists(self.layer_name):
-            self.set_default_style(self.layer_name, self.layer_name,
-                                   SYRIA_SLD.format(
-                                       layer_name=self.layer_name,
-                                       layer_title=self.layer_title))
-        self.update_gs_metadata(self.layer_name, META_JSON.replace(
-            '<time>', latest_date.strftime('%Y-%m-%dT00:00:00.000Z')),
-                                vector=True)
-        self.layer_title += latest_date.strftime(' %m/%Y')
-        self.update_geonode(self.layer_name, title=self.layer_title)
-        self.truncate_gs_cache(self.layer_name)
+        for layer_name, layer_title in zip(self.layer_names, self.layer_titles):
+            if not layer_exists(layer_name,
+                                ogc_server_settings.server.get('DATASTORE'),
+                                DEFAULT_WORKSPACE):
+                self.post_geoserver_vector(layer_name)
+            if not style_exists(layer_name):
+                self.set_default_style(layer_name, layer_name,
+                                       SYRIA_SLD.format(
+                                           layer_name=layer_name,
+                                           layer_title=layer_title))
+            if 'total' not in layer_name:
+                self.update_gs_metadata(layer_name, META_JSON.replace(
+                    '<time>', latest_date.strftime('%Y-%m-%dT00:00:00.000Z')),
+                                        vector=True)
+            layer_title += latest_date.strftime(' %m/%Y')
+            self.update_geonode(layer_name, title=layer_title)
+            self.truncate_gs_cache(layer_name)
         self.cleanup()
 
 
