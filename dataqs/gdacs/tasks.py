@@ -4,7 +4,7 @@ from celery import shared_task
 from dataqs.gdacs.gdacs import GDACSProcessor
 
 
-@shared_task()
+@shared_task
 def gdacs_task():
     processor = GDACSProcessor()
     processor.run()
