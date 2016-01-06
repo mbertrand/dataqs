@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from celery import shared_task
-from dataqs.mmwr.mmwwr import MortalityProcessor
+from dataqs.mmwr.mmwr import MortalityProcessor
 
 
 @shared_task()

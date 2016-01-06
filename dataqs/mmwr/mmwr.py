@@ -26,7 +26,7 @@ csvt_content = '"String","Real","Real","Integer","Integer","Integer","Integer","
 
 class MortalityProcessor(GeoDataProcessor):
     prefix = 'mmwr'
-    base_title = 'Mortality and Morbidity Reports'
+    base_title = 'Morbidity and Mortality Reports'
     titles = ['Weekly', 'Archive']
     base_url = 'http://wonder.cdc.gov/mmwr/mmwr_{year}.asp?request=Export&mmwr_location=Click+here+for+all+Locations&mmwr_table=4A&mmwr_year={year}&mmwr_week={week}'
     params = {}
