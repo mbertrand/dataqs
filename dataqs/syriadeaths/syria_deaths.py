@@ -10,15 +10,15 @@ from geonode.geoserver.helpers import ogc_server_settings
 
 logger = logging.getLogger("dataqs.processors")
 
-CREATE_TABLE_SQL = """CREATE TABLE IF NOT EXISTS {}
+CREATE_TABLE_SQL = """CREATE TABLE IF NOT EXISTS {table}
 (
 "id" SERIAL NOT NULL PRIMARY KEY,
 "year" integer,
 "month" character varying,
-"timestamp_start" timestamp with timezone,
+"timestamp_start" timestamp with time zone,
 "deaths" integer,
 "province" character varying,
-CONSTRAINT wqp_syria_deaths_key UNIQUE ("province", "timestamp")
+CONSTRAINT {table}_key UNIQUE ("province", "timestamp_start")
 );
 """
 
@@ -168,7 +168,7 @@ META_JSON = """{
           "@key": "time",
           "dimensionInfo": {
             "enabled": true,
-            "attribute": "timestamp",
+            "attribute": "timestamp_start",
             "presentation": "LIST",
             "units": "ISO8601",
             "defaultValue": {
@@ -201,14 +201,14 @@ class SyriaDeathsProcessor(GeoDataProcessor):
     def update_db(self, rows):
         if not table_exists(self.prefix):
             self.create_table()
-        headers = "year, month, timestamp, deaths, province"
+        headers = "year, month, timestamp_start, deaths, province"
         for row in rows:
             insert_sql = 'INSERT INTO "{}" ({}) SELECT \n'.format(
                 self.prefix, headers)
             insert_sql += '{},{},\'{}\',{},\'{}\' '.format(
                 row[0], row[1], row[2], row[3], row[4]
             )
-            insert_sql += """WHERE NOT EXISTS (SELECT 1 from {} WHERE timestamp
+            insert_sql += """WHERE NOT EXISTS (SELECT 1 from {} WHERE timestamp_start
 = \'{}\' and province = \'{}\');""".format(self.prefix, row[2], row[-1])
             postgres_query(insert_sql, params=tuple(row), commit=True)
             for layer in self.layer_names:
@@ -216,7 +216,7 @@ class SyriaDeathsProcessor(GeoDataProcessor):
                     self.create_view()
 
     def create_table(self):
-        postgres_query(CREATE_TABLE_SQL.format(self.prefix),
+        postgres_query(CREATE_TABLE_SQL.format(table=self.prefix),
                        commit=True)
 
     def create_view(self):
