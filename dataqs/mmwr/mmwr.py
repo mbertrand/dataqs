@@ -154,7 +154,7 @@ class MortalityProcessor(GeoDataProcessor):
             constraint = 'ALTER TABLE {table} ADD CONSTRAINT ' \
                          '{table}_unique UNIQUE (place, report_date)'\
                 .format(table=table)
-            postgres_query(constraint, commit=False)
+            postgres_query(constraint, commit=True)
             self.post_geoserver_vector(table)
         if not style_exists(table):
             with open(os.path.join(script_dir, 'mmwr.sld')) as sldfile:

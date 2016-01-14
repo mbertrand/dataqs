@@ -18,6 +18,7 @@ Quick start
         'dataqs.gfms',
         'dataqs.airnow',
         'dataqs.wqp',
+        'dataqs.aqicn',
         #etc
     )
     
@@ -35,6 +36,11 @@ Quick start
 	        'task': 'dataqs.forecastio.tasks.forecast_io_task',
 	        'schedule': crontab(minute='1'),
 	        'args': ()
+	    },
+	    'aqicn': {
+	        'task': 'dataqs.aqicn.tasks.aqicn_task',
+	        'schedule': crontab(hour='*/6', minute='0'),
+	        'args': ([],)
 	    },
 	}
 

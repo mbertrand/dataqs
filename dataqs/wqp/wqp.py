@@ -91,7 +91,7 @@ class WaterQualityPortalProcessor(GeoDataProcessor):
     and the National Water Quality Monitoring Council (NWQMC).
     """
 
-    days = 1
+    days = 30
     days_to_keep = 90
     indicators = ['pH',
                   'Oxygen',
@@ -201,8 +201,7 @@ class WaterQualityPortalProcessor(GeoDataProcessor):
                                 val, row[time_idx], row[zone_idx])
                             row[i] = time_str
                         else:
-
-                            if not val:
+                            if not val or val == '.' or val == 'None':
                                 row[i] = None
                     insert_sql += '{}'.format(
                         ','.join('{}'.format(x) for x in query_format)) + \
@@ -271,16 +270,19 @@ class WaterQualityPortalProcessor(GeoDataProcessor):
             if os.path.getsize(os.path.join(self.tmp_dir, station_csv)) > 0:
                 self.update_station_table(station_csv)
             result_csv = csv_dict['Result']
+            datastore = ogc_server_settings.server.get('DATASTORE')
             if os.path.getsize(os.path.join(self.tmp_dir, result_csv)) > 0:
                 self.update_indicator_table(result_csv)
                 layer_name = self.prefix + self.safe_name(indicator) + self.suffix
                 layer_title = 'Water Quality - {} - Updated {}'.format(
                     indicator, datetime.datetime.now().strftime('%Y-%m-%d'))
                 if not layer_exists(layer_name,
-                                    ogc_server_settings.server.get('DATASTORE'),
+                                    datastore,
                                     DEFAULT_WORKSPACE):
                     self.post_geoserver_vector(layer_name)
-                self.update_geonode(layer_name, title=layer_title)
+                self.update_geonode(layer_name,
+                                    title=layer_title,
+                                    store=datastore)
                 self.truncate_gs_cache(layer_name)
         self.cleanup()
 

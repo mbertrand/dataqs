@@ -263,6 +263,14 @@ def gdal_band_subset(infile, bands, dst_filename, dst_format="GTiff"):
 
 
 def warp_image(infile, outfile, dst_crs="EPSG:3857", dst_driver='GTiff'):
+    """
+    Use rasterio to warp an image from one projection to another
+    :param infile: Origina raster image
+    :param outfile: Warped raster image
+    :param dst_crs: Output projection
+    :param dst_driver: Output filetype driver
+    :return: None
+    """
     with rasterio.drivers(CPL_DEBUG=False):
         with rasterio.open(infile) as src:
             res = None
