@@ -39,7 +39,7 @@ class MortalityProcessor(GeoDataProcessor):
     prefix = 'mmwr'
     base_title = 'Morbidity and Mortality Reports'
     titles = ['Weekly', 'Archive']
-    base_url = 'http://wonder.cdc.gov/mmwr/mmwr_{year}.asp?request=Export&mmwr_location=Click+here+for+all+Locations&mmwr_table=4A&mmwr_year={year}&mmwr_week={week}'
+    base_url = 'http://wonder.cdc.gov/mmwr/mmwr_{year}.asp?request=Export&mmwr_location=Click+here+for+all+Locations&mmwr_table=4A&mmwr_year={year}&mmwr_week={week:02d}'
     params = {}
 
     def __init__(self, *args, **kwargs):
@@ -154,7 +154,7 @@ class MortalityProcessor(GeoDataProcessor):
             constraint = 'ALTER TABLE {table} ADD CONSTRAINT ' \
                          '{table}_unique UNIQUE (place, report_date)'\
                 .format(table=table)
-            postgres_query(constraint, commit=False)
+            postgres_query(constraint, commit=True)
             self.post_geoserver_vector(table)
         if not style_exists(table):
             with open(os.path.join(script_dir, 'mmwr.sld')) as sldfile:
