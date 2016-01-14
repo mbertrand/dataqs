@@ -39,7 +39,7 @@ class MortalityProcessor(GeoDataProcessor):
     prefix = 'mmwr'
     base_title = 'Morbidity and Mortality Reports'
     titles = ['Weekly', 'Archive']
-    base_url = 'http://wonder.cdc.gov/mmwr/mmwr_{year}.asp?request=Export&mmwr_location=Click+here+for+all+Locations&mmwr_table=4A&mmwr_year={year}&mmwr_week={week}'
+    base_url = 'http://wonder.cdc.gov/mmwr/mmwr_{year}.asp?request=Export&mmwr_location=Click+here+for+all+Locations&mmwr_table=4A&mmwr_year={year}&mmwr_week={week:02d}'
     params = {}
 
     def __init__(self, *args, **kwargs):
