@@ -12,7 +12,8 @@ import datetime
 import traceback
 from dateutil.parser import parse
 from dateutil.tz import tzutc
-from dataqs.helpers import postgres_query, get_html, layer_exists, table_exists, style_exists
+from dataqs.helpers import postgres_query, get_html, layer_exists, table_exists, style_exists, \
+    asciier
 from dataqs.processor_base import GeoDataProcessor, DEFAULT_WORKSPACE
 from geonode.geoserver.helpers import ogc_server_settings
 
@@ -227,18 +228,17 @@ class AQICNWorker(object):
             page = requests.get(city['url'], timeout=60, headers=REQ_HEADER)
             page.raise_for_status()
             soup = bs(page.text, "lxml")
-            title = soup.find('title').text
-
             mapString = re.search(
                 '(?<=mapInitWithData\()\[\{[^;]*\}\]', soup.text).group(0)
             mapJson = json.loads(mapString.strip('\n'))
             for item in mapJson:
-                if re.match(asciier(item['city']), asciier(title)):
+                if asciier(item['city']).lower().startswith(
+                        asciier(city['city']).lower()):
                     for key in ['utime', 'tz', 'aqi', 'g']:
                         city[key] = item[key]
                     break
             if 'utime' not in city:
-                logger.warn('No data for {}'.format(city['url']))
+                logger.error('No data for {}'.format(city['url']))
                 return
             city['dateTime'] = self.getTime(city)
             city["data"] = {}
@@ -287,7 +287,7 @@ class AQICNWorker(object):
             time=city['dateTime'].strftime('%Y-%m-%d %H:%M:%S'),
             lat=city['g'][0],
             lng=city['g'][1],
-            city=city_name,
+            city=city_name.replace('\'', '\'\''),
             keys=measurements,
             val=values,
             kv=kv,
@@ -398,7 +398,6 @@ class AQICNProcessor(GeoDataProcessor):
         logger.debug("There are %s cities" % str(len(self.cities)))
         pool = ThreadPool(self.pool_size)
         for citylist in self.split_list(self.pool_size):
-            #thread_parse(self.prefix, citylist)
             pool.apply_async(thread_parse, args=(self.prefix, citylist))
         pool.close()
         pool.join()
