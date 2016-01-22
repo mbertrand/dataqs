@@ -1,0 +1,11 @@
+[u'eventtype',
+ u'name',
+ u'startdate',
+ u'enddate',
+ u'affected',
+ u'states',
+ u'counties',
+ u'species',
+ u'diagnosis',
+ 'lat',
+ 'lng']
