@@ -168,12 +168,10 @@ class SyriaDeathsProcessor(GeoDataProcessor):
                                 DEFAULT_WORKSPACE):
                 self.post_geoserver_vector(layer_name)
             if not style_exists(layer_name):
-                with open(os.path.join(
-                        script_dir, 'resources/syriadeaths.sld')) as sld:
+                with open(os.path.join(script_dir, 'resources/{}.sld').format(
+                        layer_name)) as sld:
                     self.set_default_style(layer_name, layer_name,
-                                           sld.read().format(
-                                               layer_name=layer_name,
-                                               layer_title=layer_title))
+                                           sld.read())
             if 'total' not in layer_name:
                 self.update_gs_metadata(layer_name, META_JSON.replace(
                     '<time>', latest_date.strftime('%Y-%m-%dT00:00:00.000Z')),

@@ -66,7 +66,6 @@ class MortalityProcessor(GeoDataProcessor):
         week = report_date.isocalendar()[1]
         year = report_date.year
         logger.debug('Year {}, week {}'.format(year, week))
-
         exportfile = '{}.txt'.format(self.prefix)
         for x in range(4):
             try:
@@ -78,6 +77,7 @@ class MortalityProcessor(GeoDataProcessor):
                     content = testfile.read().strip()
                     if content.startswith('<'):
                         raise HTTPError
+                    break
             except HTTPError:
                 if x < 3:
                     year = year - 1 if week == 1 else year
@@ -89,7 +89,7 @@ class MortalityProcessor(GeoDataProcessor):
                     ))
                     return
 
-        with open(os.path.join(script_dir, 'mmwr.json')) as jsonfile:
+        with open(os.path.join(script_dir, 'resources/mmwr.json')) as jsonfile:
             places = json.load(jsonfile)
 
         with open(os.path.join(self.tmp_dir, exportfile)) as openfile:
@@ -157,7 +157,8 @@ class MortalityProcessor(GeoDataProcessor):
             postgres_query(constraint, commit=True)
             self.post_geoserver_vector(table)
         if not style_exists(table):
-            with open(os.path.join(script_dir, 'mmwr.sld')) as sldfile:
+            with open(os.path.join(
+                    script_dir, 'resources/mmwr.sld')) as sldfile:
                 sld = sldfile.read().format(layername=table)
                 self.set_default_style(table, table, sld)
         self.update_geonode(
