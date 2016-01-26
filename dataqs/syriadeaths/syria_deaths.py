@@ -1,4 +1,5 @@
 import logging
+import os
 import requests
 from bs4 import BeautifulSoup
 import datetime
@@ -9,6 +10,7 @@ from dataqs.processor_base import GeoDataProcessor, DEFAULT_WORKSPACE
 from geonode.geoserver.helpers import ogc_server_settings
 
 logger = logging.getLogger("dataqs.processors")
+script_dir = os.path.dirname(os.path.realpath(__file__))
 
 CREATE_TABLE_SQL = """CREATE TABLE IF NOT EXISTS {table}
 (
@@ -42,122 +44,6 @@ PROV_DICT = {
     'Idlib': 'Idlib'
 }
 
-SYRIA_SLD = """<?xml version="1.0" encoding="UTF-8"?><sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml" version="1.0.0">
-  <sld:NamedLayer>
-    <sld:Name>{layer_name}</sld:Name>
-    <sld:UserStyle>
-      <sld:Name>{layer_name}</sld:Name>
-      <sld:Title>{layer_title}</sld:Title>
-      <sld:IsDefault>1</sld:IsDefault>
-      <sld:FeatureTypeStyle>
-        <sld:Rule>
-          <sld:Name>rule1</sld:Name>
-          <sld:Title> &lt;= 10</sld:Title>
-          <sld:Abstract></sld:Abstract>
-          <ogc:Filter>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>10</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-          </ogc:Filter>
-          <sld:PolygonSymbolizer>
-            <sld:Fill>
-              <sld:CssParameter name="fill">#0004FF</sld:CssParameter>
-            </sld:Fill>
-            <sld:Stroke/>
-          </sld:PolygonSymbolizer>
-        </sld:Rule>
-        <sld:Rule>
-          <sld:Name>rule1</sld:Name>
-          <sld:Title> &gt; 10 AND &lt;= 50</sld:Title>
-          <sld:Abstract></sld:Abstract>
-          <ogc:Filter>
-            <ogc:And>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>10</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>50</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
-          </ogc:Filter>
-          <sld:PolygonSymbolizer>
-            <sld:Fill>
-              <sld:CssParameter name="fill">#32BB0C</sld:CssParameter>
-            </sld:Fill>
-            <sld:Stroke/>
-          </sld:PolygonSymbolizer>
-        </sld:Rule>
-        <sld:Rule>
-          <sld:Name>rule1</sld:Name>
-          <sld:Title> &gt; 50 AND &lt;= 250</sld:Title>
-          <sld:Abstract></sld:Abstract>
-          <ogc:Filter>
-            <ogc:And>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>50</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>250</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
-          </ogc:Filter>
-          <sld:PolygonSymbolizer>
-            <sld:Fill>
-              <sld:CssParameter name="fill">#FFFF00</sld:CssParameter>
-            </sld:Fill>
-            <sld:Stroke/>
-          </sld:PolygonSymbolizer>
-        </sld:Rule>
-        <sld:Rule>
-          <sld:Name>rule1</sld:Name>
-          <sld:Title> &gt; 250 AND &lt;= 500</sld:Title>
-          <sld:Abstract></sld:Abstract>
-          <ogc:Filter>
-            <ogc:And>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>250</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>500</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
-          </ogc:Filter>
-          <sld:PolygonSymbolizer>
-            <sld:Fill>
-              <sld:CssParameter name="fill">#FF7F00</sld:CssParameter>
-            </sld:Fill>
-            <sld:Stroke/>
-          </sld:PolygonSymbolizer>
-        </sld:Rule>
-        <sld:Rule>
-          <sld:Name>rule1</sld:Name>
-          <sld:Title> &gt; 500</sld:Title>
-          <sld:Abstract></sld:Abstract>
-          <ogc:Filter>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>deaths</ogc:PropertyName>
-                <ogc:Literal>500</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-          </ogc:Filter>
-          <sld:PolygonSymbolizer>
-            <sld:Fill>
-              <sld:CssParameter name="fill">#FF0000</sld:CssParameter>
-            </sld:Fill>
-            <sld:Stroke/>
-          </sld:PolygonSymbolizer>
-        </sld:Rule>
-      </sld:FeatureTypeStyle>
-    </sld:UserStyle>
-  </sld:NamedLayer>
-</sld:StyledLayerDescriptor>
-"""
 
 META_JSON = """{
   "featureType": {
@@ -208,8 +94,9 @@ class SyriaDeathsProcessor(GeoDataProcessor):
             insert_sql += '{},{},\'{}\',{},\'{}\' '.format(
                 row[0], row[1], row[2], row[3], row[4]
             )
-            insert_sql += """WHERE NOT EXISTS (SELECT 1 from {} WHERE timestamp_start
-= \'{}\' and province = \'{}\');""".format(self.prefix, row[2], row[-1])
+            insert_sql += """WHERE NOT EXISTS (SELECT 1 from {} WHERE
+            timestamp_start = \'{}\' and province = \'{}\');""".format(
+                self.prefix, row[2], row[-1])
             postgres_query(insert_sql, params=tuple(row), commit=True)
             for layer in self.layer_names:
                 if not table_exists(layer):
@@ -281,14 +168,16 @@ class SyriaDeathsProcessor(GeoDataProcessor):
                                 DEFAULT_WORKSPACE):
                 self.post_geoserver_vector(layer_name)
             if not style_exists(layer_name):
-                self.set_default_style(layer_name, layer_name,
-                                       SYRIA_SLD.format(
-                                           layer_name=layer_name,
-                                           layer_title=layer_title))
+                with open(os.path.join(
+                        script_dir, 'resources/syriadeaths.sld')) as sld:
+                    self.set_default_style(layer_name, layer_name,
+                                           sld.read().format(
+                                               layer_name=layer_name,
+                                               layer_title=layer_title))
             if 'total' not in layer_name:
                 self.update_gs_metadata(layer_name, META_JSON.replace(
                     '<time>', latest_date.strftime('%Y-%m-%dT00:00:00.000Z')),
-                                        vector=True)
+                    vector=True)
             layer_title += latest_date.strftime(' %m/%Y')
             self.update_geonode(layer_name, title=layer_title)
             self.truncate_gs_cache(layer_name)

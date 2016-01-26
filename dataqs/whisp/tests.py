@@ -1,6 +1,7 @@
 import glob
 import json
 import bs4
+import httpretty
 import os
 import datetime
 from django.test import TestCase
@@ -11,7 +12,7 @@ import mock
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def mock_download(self):
+def test_data():
     with open(os.path.join(script_dir, 'resources/test_whisp.html')) as html:
         return html.read()
 
@@ -20,6 +21,7 @@ def mock_insert_row(self, data):
     with open(os.path.join(
             self.tmp_dir, '().json'.format(self.prefix)), 'w') as testfile:
         json.dump(data, testfile)
+
 
 class WhispTest(TestCase):
     """
@@ -30,14 +32,23 @@ class WhispTest(TestCase):
 
     def setUp(self):
         self.processor = WhispProcessor()
+        httpretty.enable()
+
+    def tearDown(self):
+        httpretty.disable()
+        self.processor.cleanup()
 
     @mock.patch('dataqs.whisp.whisp.WhispProcessor.insert_row', mock_insert_row)
-    @mock.patch('dataqs.whisp.whisp.WhispProcessor.download', mock_download)
     def test_scrape(self):
         """
         Verify that the correct records can be read from html
         :return:
         """
+        httpretty.register_uri(
+            httpretty.GET,
+            self.processor.base_url,
+            body=test_data(),
+            content_type='text/html')
         self.processor.scrape()
         testfile = os.path.join(
             self.processor.tmp_dir, '().json'.format(self.processor.prefix))
@@ -49,7 +60,6 @@ class WhispTest(TestCase):
         self.processor.cleanup()
 
     @mock.patch('dataqs.whisp.whisp.WhispProcessor.insert_row', mock_insert_row)
-    @mock.patch('dataqs.whisp.whisp.WhispProcessor.download', mock_download)
     def test_archive_import(self):
         """
         Verify that the correct records can be read from archive
@@ -65,8 +75,14 @@ class WhispTest(TestCase):
             self.assertTrue(test_json['the_geom'])
         self.processor.cleanup()
 
-
+    @mock.patch('dataqs.whisp.whisp.WhispProcessor.insert_row', mock_insert_row)
     def test_cleanup(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            self.processor.base_url,
+            body=test_data(),
+            content_type='text/html')
+        self.processor.scrape()
         self.processor.cleanup()
         self.assertEquals([], glob.glob(os.path.join(
             self.processor.tmp_dir, self.processor.prefix + '*')))
