@@ -70,9 +70,9 @@ class HealthMapProcessor(GeoDataProcessor):
         :param password: Required password?
         :return: Name of the downloaded file (not including path).
         """
-        return super(HealthMapProcessor, self).download(url + urllib.urlencode(self.healthmap_params),
-                                                        filename=filename)
-
+        return super(HealthMapProcessor, self).download(
+            url + urllib.urlencode(self.healthmap_params),
+            filename=filename)
 
     def update_db(self, filename):
         client = MongoClient(host=MONGODB['HOST'], port=MONGODB['PORT'])

@@ -71,7 +71,7 @@ class MortalityProcessor(GeoDataProcessor):
             try:
                 exportfile = self.download(
                     self.base_url.format(
-                        year=year, week=week), exportfile)
+                        year=year, week=week), filename=exportfile)
                 with open(
                         os.path.join(self.tmp_dir, exportfile)) as testfile:
                     content = testfile.read().strip()

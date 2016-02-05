@@ -13,7 +13,7 @@ import datetime
 import traceback
 from dateutil.parser import parse
 from dateutil.tz import tzutc
-from dataqs.helpers import postgres_query, get_html, layer_exists, table_exists, style_exists, \
+from dataqs.helpers import postgres_query, layer_exists, table_exists, style_exists, \
     asciier
 from dataqs.processor_base import GeoDataProcessor, DEFAULT_WORKSPACE
 from geonode.geoserver.helpers import ogc_server_settings
@@ -263,7 +263,7 @@ class AQICNProcessor(GeoDataProcessor):
     def download(self, url=None):
         if not url:
             url = self.base_url
-        return get_html(url)
+        return super(AQICNProcessor, self).download(url, html=True)
 
     def getCities(self):
         soup = bs(self.download(self.base_url), "lxml")

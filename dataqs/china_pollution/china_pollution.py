@@ -5,9 +5,9 @@ import logging
 import os
 import requests
 from geonode.geoserver.helpers import ogc_server_settings
-from ..csv_helpers import UnicodeWriter
-from ..helpers import ogr2ogr_exec
-from ..processor_base import GeoDataProcessor
+from dataqs.csv_helpers import UnicodeWriter
+from dataqs.helpers import ogr2ogr_exec
+from dataqs.processor_base import GeoDataProcessor
 
 logger = logging.getLogger("dataqs.processors")
 
