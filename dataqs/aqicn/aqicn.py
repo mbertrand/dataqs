@@ -87,12 +87,6 @@ def thread_parse(table, cities):
     aqi_parser.run()
 
 
-def asciier(txt):
-    """
-    Remove any non-ASCII characters
-    """
-    return ''.join(i for i in txt if ord(i) < 128)
-
 class AQICNWorker(object):
     def __init__(self, table, cities):
         self.cities = cities
@@ -133,7 +127,6 @@ class AQICNWorker(object):
             for item in map_json:
                 if re.search(u'{}(,|$)'.format(asciier(city['city']).lower()),
                              asciier(item['city']).lower()):
-                    logger.debug('{}:{}'.format(item['city'], city['city']))
                     for key in ['tz', 'g']:
                         city[key] = item[key]
                     break
