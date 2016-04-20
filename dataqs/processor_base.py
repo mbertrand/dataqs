@@ -55,6 +55,7 @@ Estimated\ extends=false
 validate\ connections=true
 Connection\ timeout=10
 preparedStatements=true
+TypeNames=false
 """
 
 GPMOSAIC_TIME_REGEX = "regex=[0-9]{8}T[0-9]{9}Z"
