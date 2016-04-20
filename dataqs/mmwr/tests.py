@@ -65,9 +65,10 @@ class MMWRTest(TestCase):
             headers = reader.next()
             with open(os.path.join(script_dir, 'resources/mmwr.json')) as locs:
                 locations = json.load(locs)
-            self.assertEquals(headers, ['place', 'lng', 'lat', 'all', 'a65',
-                'a45_64', 'a25_44', 'a01-24', 'a01', 'flu',
-                'report_date'])
+            self.assertEquals(
+                headers, ['place', 'lng', 'lat', 'all', 'a65',
+                          'a45_64', 'a25_44', 'a01-24', 'a01', 'flu',
+                          'report_date'])
             for row in reader:
                 self.assertIn(row[0], locations)
                 self.assertEquals(float(row[1]), locations[row[0]][1])

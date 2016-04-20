@@ -8,3 +8,4 @@ from dataqs.whisp.whisp import WhispProcessor
 def wqp_task():
     processor = WhispProcessor()
     processor.run()
+

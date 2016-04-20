@@ -15,8 +15,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger("dataqs.processors")
 
 # Indicate what columns in csv are latitude, longitude
-vrt_content = (
-"""<OGRVRTDataSource>
+vrt_content = ("""<OGRVRTDataSource>
     <OGRVRTLayer name="{name}">
         <SrcDataSource>{csv}</SrcDataSource>
         <GeometryType>wkbPoint</GeometryType>
@@ -39,7 +38,9 @@ class MortalityProcessor(GeoDataProcessor):
     prefix = 'mmwr'
     base_title = 'Morbidity and Mortality Reports'
     titles = ['Weekly', 'Archive']
-    base_url = 'http://wonder.cdc.gov/mmwr/mmwr_{year}.asp?request=Export&mmwr_location=Click+here+for+all+Locations&mmwr_table=4A&mmwr_year={year}&mmwr_week={week:02d}'
+    base_url = 'http://wonder.cdc.gov/mmwr/mmwr_{year}.asp?request=Export' \
+               '&mmwr_location=Click+here+for+all+Locations&mmwr_table=4A' \
+               '&mmwr_year={year}&mmwr_week={week:02d}'
     params = {}
 
     def __init__(self, *args, **kwargs):
@@ -133,7 +134,7 @@ class MortalityProcessor(GeoDataProcessor):
         if not os.path.exists(vrt_file):
             with open(vrt_file, 'w') as vrt:
                 vrt.write(vrt_content.format(
-                    name=csvfile.replace('.csv',''),
+                    name=csvfile.replace('.csv', ''),
                     csv=os.path.join(self.tmp_dir, csvfile)))
         if not os.path.exists(csvt_file):
             with open(csvt_file, 'w') as csvt:

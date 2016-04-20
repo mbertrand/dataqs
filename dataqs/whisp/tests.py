@@ -1,12 +1,9 @@
 import glob
 import json
-import bs4
 import httpretty
 import os
-import datetime
 from django.test import TestCase
 from dataqs.whisp.whisp import WhispProcessor
-import unicodecsv as csv
 import mock
 
 script_dir = os.path.dirname(os.path.realpath(__file__))

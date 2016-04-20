@@ -1,0 +1,13 @@
+- hosts: geoservices
+  remote_user: "{{ deploy_user }}"
+  roles:
+     - common
+     - {role: geerlingguy.redis, sudo: yes}
+     - zenoamaro.supervisord
+     - postgres_postgis
+     - oracle_java
+     - geoserver
+     - nginx
+     - uwsgi
+     - geonode
+     - dataqs

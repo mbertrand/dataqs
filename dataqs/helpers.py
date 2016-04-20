@@ -3,10 +3,7 @@ import logging
 import traceback
 import os
 import subprocess
-
-import functools
 import requests
-from django.core.cache import cache
 from geoserver.catalog import Catalog, FailedRequestError
 import psycopg2
 import re
@@ -14,7 +11,7 @@ import sys
 from StringIO import StringIO
 import rasterio
 from osgeo import gdal
-from rasterio._warp import RESAMPLING
+from rasterio.warp import RESAMPLING
 from rasterio.warp import calculate_default_transform, reproject
 import unicodedata
 from geonode.geoserver.helpers import ogc_server_settings
@@ -320,30 +317,6 @@ def get_html(url=None):
     r = requests.get(url, timeout=60)
     r.raise_for_status()
     return r.content
-
-
-def single_instance_task(timeout=86400):
-    """
-    Celery wrapper to prevent running more than one instance
-    of a task at the same time.
-    :param timeout: Length of time to keep lock
-    :return:
-    """
-    def task_exc(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            lock_id = "celery-single-instance-" + func.__name__
-            acquire_lock = lambda: cache.add(lock_id, "true", timeout)
-            release_lock = lambda: cache.delete(lock_id)
-            if acquire_lock():
-                try:
-                    func(*args, **kwargs)
-                finally:
-                    release_lock()
-            else:
-                raise Exception('Could not start; previous task still running')
-        return wrapper
-    return task_exc
 
 
 def asciier(txt):

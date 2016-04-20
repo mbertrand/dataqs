@@ -46,7 +46,8 @@ INSERT INTO {table}
 (eventtype, eventname, startdate, enddate, affected, states, counties,
 species, diagnosis, coords, the_geom)
  SELECT %(eventtype)s, %(eventname)s, %(startdate)s, %(enddate)s, %(affected)s,
- %(states)s, %(counties)s, %(species)s, %(diagnosis)s, %(coords)s, ST_GeomFromText('{geom}', 4326)
+ %(states)s, %(counties)s, %(species)s, %(diagnosis)s, %(coords)s,
+ ST_GeomFromText('{geom}', 4326)
  WHERE NOT EXISTS (SELECT 1 from {table} WHERE eventname = %(eventname)s);
 """
 
@@ -107,7 +108,7 @@ class WhispProcessor(GeoDataProcessor):
 
     def import_archive(self):
         zf = zipfile.ZipFile(os.path.join(script_dir,
-            'resources/whispers_archive.zip'))
+                                          'resources/whispers_archive.zip'))
         reader = csv.DictReader(
             StringIO.StringIO(zf.read('whispers_archive.csv')))
         for row in reader:
