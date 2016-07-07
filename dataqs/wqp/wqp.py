@@ -4,6 +4,8 @@ import logging
 import os
 import datetime
 import re
+import traceback
+
 import requests
 from dataqs.helpers import postgres_query, ogr2ogr_exec, \
     table_exists, purge_old_data, layer_exists, style_exists
@@ -39,6 +41,7 @@ class WaterQualityPortalProcessor(GeoDataProcessor):
     station_table = "wqp_api_stations"
     suffix = "_map"
     base_url = "http://www.waterqualitydata.us/{}/search?countrycode=US"
+    skip_errors = True
 
     def __init__(self, *args, **kwargs):
         super(WaterQualityPortalProcessor, self).__init__(*args, **kwargs)
@@ -142,7 +145,13 @@ class WaterQualityPortalProcessor(GeoDataProcessor):
                         ' WHERE NOT EXISTS (SELECT 1 from ' + \
                         '{} WHERE "ActivityIdentifier" = \'{}\');'.format(
                             indicator, re.sub('\'{1}', '\'\'', row[id_idx]))
-                    postgres_query(insert_sql, params=tuple(row), commit=True)
+                    try:
+                        postgres_query(insert_sql, params=tuple(row), commit=True)
+                    except Exception as e:
+                        logger.error("The following query failed: {} with parameters: {}".format(insert_sql, row))
+                        logger.error(traceback.format_exc())
+                        if not self.skip_errors:
+                            raise e
         purge_old_data(indicator, date_cols[0], self.days_to_keep)
         if not table_exists(indicator + self.suffix):
             view_sql = 'CREATE OR REPLACE VIEW ' + indicator + self.suffix + \
