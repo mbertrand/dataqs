@@ -215,11 +215,14 @@ class GeoDataProcessor(object):
         res.raise_for_status()
         return res.content
 
-    def update_geonode(self, layer_name, title="", bounds=None, store=None):
+    def update_geonode(self, layer_name, title="", description="", bounds=None, store=None):
         """
         Update a layer and it's title in GeoNode
         :param layer_name: Name of the layer
-        :param title: New title for layer
+        :param title: Title for layer
+        :param description: Description for layer
+        :param bounds: Bounds for layer
+        :param store: Store for layer
         """
         # Update the layer in GeoNode
         ulc = UpdateLayersCommand()
@@ -230,6 +233,7 @@ class GeoDataProcessor(object):
             from geonode.layers.models import Layer
             lyr = Layer.objects.get(typename='geonode:{}'.format(layer_name))
             lyr.title = title
+            lyr.description = description
             lyr.save()
             if bounds:
                 from geonode.layers.models import Layer
