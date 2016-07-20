@@ -215,7 +215,8 @@ class GeoDataProcessor(object):
         res.raise_for_status()
         return res.content
 
-    def update_geonode(self, layer_name, title="", description="", bounds=None, store=None):
+    def update_geonode(self, layer_name, title="", description="",
+                       category=None, bounds=None, store=None):
         """
         Update a layer and it's title in GeoNode
         :param layer_name: Name of the layer
@@ -234,6 +235,8 @@ class GeoDataProcessor(object):
             lyr = Layer.objects.get(typename='geonode:{}'.format(layer_name))
             lyr.title = title
             lyr.description = description
+            if category:
+                lyr.category = category
             lyr.save()
             if bounds:
                 from geonode.layers.models import Layer
