@@ -234,7 +234,7 @@ class GeoDataProcessor(object):
             from geonode.layers.models import Layer
             lyr = Layer.objects.get(typename='geonode:{}'.format(layer_name))
             lyr.title = title
-            lyr.description = description
+            lyr.abstract = description
             if category:
                 lyr.category = category
             lyr.save()
@@ -247,39 +247,42 @@ class GeoDataProcessor(object):
                 gs_catalog = Catalog(url, _user, _password)
                 gs_catalog.save(res)
 
-    def set_default_style(self, layer_name, sld_name, sld_content):
+    def set_default_style(self, layer_name, sld_name, sld_content, create=True):
         """
         Create a style and assign it as default to a layer
         :param layer_name: the layer to assign the style to
         :param sld_name: the name to give the style
         :param sld_content: the actual XML content for the style
+        :param create: create the style if true
         :return: None
         """
+
         gs_url = self.gs_style_url.format(ogc_server_settings.hostname)
-
-        # Create the style
-        s = "<style><name>{name}</name><filename>{name}.sld</filename></style>"
-        data = s.format(name=sld_name)
         _user, _password = ogc_server_settings.credentials
-        res = requests.post(url=gs_url,
-                            data=data,
-                            auth=(_user, _password),
-                            headers={'Content-Type': 'text/xml'})
 
-        res.raise_for_status()
+        if create:
+            # Create the style
+            s = "<style><name>{n}</name><filename>{n}.sld</filename></style>"
+            data = s.format(n=sld_name)
+            res = requests.post(url=gs_url,
+                                data=data,
+                                auth=(_user, _password),
+                                headers={'Content-Type': 'text/xml'})
 
-        # Populate the style
-        data = sld_content
-        url = urljoin(gs_url, sld_name)
-        logger.debug(url)
-        res = requests.put(url=url,
-                           data=data,
-                           auth=(_user, _password),
-                           headers={
-                               'Content-Type': 'application/vnd.ogc.sld+xml'
-                           })
+            res.raise_for_status()
 
-        res.raise_for_status()
+            # Populate the style
+            data = sld_content
+            url = urljoin(gs_url, sld_name)
+            logger.debug(url)
+            res = requests.put(url=url,
+                               data=data,
+                               auth=(_user, _password),
+                               headers={
+                                   'Content-Type': 'application/vnd.ogc.sld+xml'
+                               })
+
+            res.raise_for_status()
 
         # Assign to the layer
         layer_typename = "{}%3A{}".format(DEFAULT_WORKSPACE, layer_name)
