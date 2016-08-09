@@ -1,13 +1,28 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+##############################################################################
+#  Copyright Kitware Inc. and Epidemico Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+##############################################################################
 import argparse
 import calendar
 import os
 import shutil
 from zipfile import ZipFile
-
 import itertools
-
 from requests import HTTPError
-
 from dataqs.helpers import gdal_translate, style_exists
 from dataqs.processor_base import GeoDataProcessor
 from geonode.base.models import TopicCategory
@@ -146,19 +161,12 @@ class WorldClimCurrentProcessor(WorldClimProcessor):
         ('bio', WorldClimProcessor.biovars)
     ]
 
-    future_years = [2050, 2070]
-    rcps = [26, 45, 60, 85]
-    past_ages = [
-        ('mid', 'Mid Holocene'),
-        ('lgm', 'Last Glacial Maximum')
-    ]
-
     base_url = 'http://biogeo.ucdavis.edu/data/climate/worldclim/' + \
                '{}/grid/cur/{}_{}_bil.zip'
     desc = """Interpolations of observed data for {},
     representative of 1960-1990.\n"""
 
-    def process(self):
+    def run(self):
 
         for var in self.climate_vars:
             for res in self.resolutions:
@@ -221,7 +229,7 @@ period, based on the {} global climate model, at {} resolution.
         ('lgm', 'Last Glacial Maximum')
     ]
 
-    def process(self):
+    def run(self):
         for var, res, age, gcm in itertools.product(
                 self.climate_vars,
                 self.resolutions,
@@ -299,7 +307,7 @@ Pathway of {rcp}, at {res} resolution."""
     rcps = [26, 45, 60, 85]
     years = [2050, 2070]
 
-    def process(self):
+    def run(self):
         for var, res, rcp, year, gcm in itertools.product(
                 self.climate_vars,
                 self.resolutions,
@@ -383,4 +391,4 @@ if __name__ == '__main__':
         for item in allvars:
             if item[0] not in vars:
                 pr.climate_vars.remove(item)
-    pr.process()
+    pr.run()
